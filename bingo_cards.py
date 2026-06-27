@@ -1,3 +1,19 @@
+#!/usr/bin/env python3
+
+"""
+bingo_cards.py
+Rishith Kilaru '26
+now maintained by D Evangelista '94.
+
+inputs:
+entries.txt is a textfile with each square text on a line
+
+outputs:
+bingo_cards.pdf is an 8.5x11" letter pdf with 2 bingo cards per sheet
+"""
+
+__version__ = "2026.06.25"
+
 import random
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -6,18 +22,32 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph
 from reportlab.lib.enums import TA_CENTER
 
-input_list = "entries.txt"
-output_pdf = "bingo_cards.pdf"
-card_count = 200
+# Rishith hard coded the inputs instead of using argparse :(
+input_list = "entries.txt" # file with input square text
+output_pdf = "bingo_cards.pdf" # ofile pdf 
+card_count = 200 # how many cards to generate; this covers all S&E
 size = 5
-board_count = 2
+board_count = 2 # 2up per page
+
+
+
+
+
 
 def load_entries(filename):
+    """
+    load_entries(filename) reads the textfile and splits it into lines
+    returning a list of strings
+    """
     with open(filename, "r", encoding="utf-8") as f:
         entries = [line.strip() for line in f if line.strip()]
     return entries
 
 def generate_card(entries):
+    """
+    generate_card(entries) makes a bingo card by randomly picking
+    from the entries
+    """
     picks = random.sample(entries, 24)
     card = [["" for _ in range(size)] for _ in range(size)]
 
@@ -31,7 +61,13 @@ def generate_card(entries):
                 idx += 1
     return card
 
+
+
+
 def draw_wrapped_text(c, text, element, response, width, height, is_free=False):
+    """
+    for generating each square
+    """
     styles = getSampleStyleSheet()
     style = styles["Normal"]
     style.alignment = TA_CENTER
@@ -45,6 +81,9 @@ def draw_wrapped_text(c, text, element, response, width, height, is_free=False):
     p.drawOn(c, element + (width - w) / 2, response + (height - h) / 2)
 
 def draw_card(c, card, card_number, origin_y):
+    """
+    for generating a card
+    """
     page_width, page_height = letter
 
     margin_x = 0.75 * inch
@@ -81,21 +120,37 @@ def draw_card(c, card, card_number, origin_y):
                 is_free=(text =="FREE")
             )
 
-entries = load_entries(input_list)
-c = canvas.Canvas(output_pdf, pagesize=letter)
 
-height = letter[1]
-card_height = (height - 2 * 0.5 * inch) / board_count
 
-for pos in range(card_count):
-    position_on_page = pos % board_count
-    origin_y = height - 0.5 * inch - (position_on_page + 1) * card_height
 
-    card = generate_card(entries)
-    draw_card(c, card, pos + 1, origin_y)
 
-    if position_on_page ==board_count - 1:
-        c.showPage()
 
-c.save()
-print("done")
+if __name__ == "__main__":
+
+    print("S&E Senior Project Bingo Card Generator, {0}".format(__version__))
+    print("Rishith Chandra Kilaru '26\n")
+    print("Generating {0} bingo cards".format(card_count))
+
+    # load entries from textfile
+    entries = load_entries(input_list)
+
+    # create canvas to draw pdf
+    c = canvas.Canvas(output_pdf, pagesize=letter)
+
+    # set dimensions
+    height = letter[1]
+    card_height = (height - 2 * 0.5 * inch) / board_count
+
+    for pos in range(card_count):
+        position_on_page = pos % board_count
+        origin_y = height - 0.5 * inch - (position_on_page + 1) * card_height
+
+        card = generate_card(entries)
+        draw_card(c, card, pos + 1, origin_y)
+
+        if position_on_page ==board_count - 1:
+            c.showPage()
+
+    c.save()
+    print("output written to {0}".format(output_pdf))
+    print("done")
